@@ -21,7 +21,7 @@ centralized=ones(m,n);
 
 %%non-QI Sparsity Constraint we study
 Sbin7=[1 0 0 0 0;
-       0 1 0 0 0;
+       1 1 0 0 0;
        0 1 0 0 0;
        0 1 0 0 0;
        0 1 0 0 1]; 
