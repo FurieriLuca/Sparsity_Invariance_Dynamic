@@ -18,7 +18,7 @@
 %          Y. Zheng, Department of Engineering Science, University of Oxford
 %
 % References 
-% [0] "Minimizing suboptimality in Distritbued Control: a Framework-Independent Approach"
+% [0] "Convex Restrictions in Distributed Control"
 % [1] "A Characterization of Convex Problems in Decentralized Control",
 % [2] "Q-Parametrization and an SDP for H ?-optimal Decentralized Control"
 % [3] "An efficient solution to multi-objective control problems with LMI objectives"
@@ -26,7 +26,7 @@
 clear all;
 %clc;
 
-N = 2;           % order of the controller
+N = 7;           % order of the controller
 a = 2;           % defines the basis for RH_infinity as {1/(s+a)^i}
 
 %% generate plant data
@@ -89,9 +89,10 @@ fprintf('==================================================\n')
 options = sdpsettings('allownonconvex',0,'solver','sedumi','verbose',1);
 sol     = optimize(Constraints,gamma,options);
 
-CQ   = round(value(CQv),6);  %rounding to avoid false non-zeros                                                                                                                       
-DQ   = round(value(DQv),6);
-
+%CQ   = round(value(CQv),6);  %rounding to avoid false non-zeros                                                                                                                       
+%DQ   = round(value(DQv),6);
+CQ  = value(CQv);
+DQ  = value(DQv);
 
 Vgamma = sqrt(value(gamma));  % value of the H2 norm!
 fprintf('\n H2 norm of the closed loop system is %6.4f \n', Vgamma);
@@ -105,7 +106,7 @@ for i = 1:n
 end
 K = Y/(eye(n)+Gs*Y);
 GQ      = Gs*Y;
-GQsubs  = double(subs(GQ,s,rand));           %just get rid of s to get the sparsity
+GQsubs  = double(subs(GQ,s,rand));           %just get rid of s to get the sparsityKbin
 GQbin   = bin(GQsubs);  
 Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
 Kbin    = bin(Ksubs);

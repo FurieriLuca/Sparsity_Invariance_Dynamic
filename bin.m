@@ -1,7 +1,7 @@
 function [A_bin] = bin(A)
     % return a binary matrix to represent the pattern
     if ~iscell(A)    % not cell matrix
-        if isdouble(A(1,1))         % scalar matrices
+        if isa(A(1,1),'double')         % scalar matrices
             eps   = 1e-5;           % tolarance
             A_bin = zeros(size(A));
             A_bin(abs(A) > eps) = 1;
