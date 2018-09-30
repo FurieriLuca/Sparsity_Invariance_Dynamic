@@ -13,14 +13,14 @@ epsilon = 0.001;
 
 [Amat, Bmat1, Bmat2] = NetStateModel(A,B1,B2,Gp); 
 
-R_struct = generate_SXlessS(SP);
-R_struct = antisymmetrize_bin(R_struct);
+R_struct = generate_SXlessS(SP);                         % This is the MSI matrix, non-symmetric
+R_struct = antisymmetrize_bin(R_struct);               % This takes the largest symmetrix component
 
 %% solution via Yalmip
 % variables
 X = sdpvar(N*n,N*n);               %% block diagonal X 
 
-for i = 1:(N*n)                     
+for i = 1:(N*n)                             %%%% X has the structure of R    
     for j = 1:(N*n)
         if R_struct(i,j) == 0
              X(i,j) = 0;
@@ -32,7 +32,7 @@ end
 %for i = 2:N
 %end
 
-Z = sdpvar(N*m,N*n);        %% Matrix Z has sparsity pattern in Gc
+Z = sdpvar(N*m,N*n);        %%  Z has the sparsity of T = SP
 for i = 1:N*m                     
     for j = 1:N*n
         if SP(i,j)==0

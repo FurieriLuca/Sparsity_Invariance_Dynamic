@@ -1,6 +1,7 @@
 function [Gc,Dist] = MeshGraphLeaders(n,L)
-%UNTITLED3 Summary of this function goes here
-%   Detailed explanation goes here
+%This function creates a communication graph where L randomly selected
+%agents have full information. The other ones communicate with their first
+%neighbours.
 
 [X,Y] = meshgrid(1:n,1:n);
 Dist(:,1) = X(:)*1.2; Dist(:,2) = Y(:)*1.2;  %% coordinates

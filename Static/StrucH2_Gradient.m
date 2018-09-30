@@ -1,4 +1,4 @@
-function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R)
+function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,K0)
     % the code solves the structured H2 problem using gradient method
 
     
@@ -11,7 +11,7 @@ function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R)
     SP = kron(Gc+eye(N),ones(m,n));  %% sparsity patten
     
     %% Initial Stablization Structured controller    
-    K0 = StruStaP1(A,B1,B2,Gp,Gc);
+    %K0 = StruStaP1(A,B1,B2,Gp,Gc);
     %[K0,~,~] = StrucH2LMI(A,B1,B2,Gp,Gc,Q,R);
     J0 = trace(lyap((Amat - Bmat2*K0)',Q + K0'*R*K0)*(Bmat1*Bmat1'));
     P = lyap((Amat - Bmat2*K0)',Q + K0'*R*K0); 
