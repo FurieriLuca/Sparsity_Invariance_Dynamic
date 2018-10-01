@@ -22,7 +22,7 @@ function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,K0)
     %% Parameters in iteration  
     alpha = 0.01;     % backtrapping line search 
     beta  = 0.5;
-    tol   = 0.001;    % tolerance of norm of gradient direction
+    tol   = 0.00001;    % tolerance of norm of gradient direction
     MaxIter = 500;    % maximum number of gradient steps
     Disp = 10;
     
@@ -50,11 +50,12 @@ function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,K0)
         while maxEigAc >= 0 || J - Jtemp < alpha*trace(gradK'*(SteSize*PgradK))
             SteSize = beta*SteSize;
             if SteSize < 1.e-19
-                error('Gradient method gets stuck with very small stepsize')
+                disp('Gradient method gets stuck with very small stepsize')
             end
             Ktemp = K - SteSize*PgradK;
             maxEigAc = max(real(eig(Amat-Bmat2*Ktemp)));
             Jtemp = trace(lyap((Amat-Bmat2*Ktemp)', Q + Ktemp'*R*Ktemp)*(Bmat1*Bmat1'));
+            break
         end
         
         % update the current step K

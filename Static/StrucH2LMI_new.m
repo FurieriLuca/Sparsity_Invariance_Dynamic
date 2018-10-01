@@ -5,7 +5,7 @@ function [K,J,Jdiag] = StrucH2LMI_new(A,B1,B2,Gp,Gc,Q,R,SP)
 %             Performance Index: Q1,Q2 --> penalize on state, Q1: absolute, Q2: relative
 % Outpute data: Jdiag, performance, K, conresponding controller
 
-epsilon = 0.001;
+epsilon = 0.000001;
 
 %% Obtain dynamics matrices
 [N,~] = size(Gp);               % Number of nodes in the graph
@@ -32,6 +32,7 @@ end
 %for i = 2:N
 %end
 
+
 Z = sdpvar(N*m,N*n);        %%  Z has the sparsity of T = SP
 for i = 1:N*m                     
     for j = 1:N*n
@@ -40,6 +41,7 @@ for i = 1:N*m
         end
     end
 end
+
 
 % constraint
 Y = sdpvar(N*m);
@@ -50,7 +52,7 @@ Const = [X-epsilon*eye(n*N) >=0, ...
 % cost function
 Obj = trace(Q*X)+trace(R*Y);
 
-ops = sdpsettings('solver','sedumi');
+ops = sdpsettings('solver','mosek');
 Info = optimize(Const,Obj,ops);
 % solution
 

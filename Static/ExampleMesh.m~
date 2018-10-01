@@ -33,8 +33,8 @@ for leaders = 0 : 1 : L
         A{i,i} = [1 1; 1 2];
         for j = i+1:n^2
             if Gp(i,j) == 1
-                A{i,j} = 50*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2); %%INCREASED THE COUPLINGS
-                A{j,i} = 50*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2);
+                A{i,j} = 10*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2); %%INCREASED THE COUPLINGS
+                A{j,i} = 10*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2);
             end
         end
     end
@@ -81,8 +81,6 @@ Jc = sqrt(trace(lyap((As - B2s*Kc)',Q + Kc'*R*Kc)*(B1s*B1s')));
 J(leaders+1,:) = [Jo1,Jo2,Jo1new,Jo2new,Jc];
 
 end
-
-plots;
 
 
 
