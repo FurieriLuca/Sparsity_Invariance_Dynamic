@@ -50,7 +50,14 @@ Gc = triu(Gc);
 Gc = Gc + Gc';
 Gc = full(spones(Gc));
 
-%%Add leaders
+
+%leaders added in order
+for(i=1:L)
+        Gc(i,:) = ones(1,n*n);
+end
+
+%{
+%%Add leaders randomly
 r=zeros(1,L);
 for(i=1:L)
         different=0;
@@ -65,6 +72,7 @@ for(i=1:L)
         end
         Gc(r(i),:) = ones(1,n*n);
 end
+%}
 
 end
 

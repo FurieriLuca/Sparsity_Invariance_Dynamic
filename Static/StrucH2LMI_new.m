@@ -1,4 +1,4 @@
-function [K,J,Jdiag] = StrucH2LMI_new(A,B1,B2,Gp,Gc,Q,R,SP)
+function [K,J,Jdiag,r] = StrucH2LMI_new(A,B1,B2,Gp,Q,R,SP)
 % Structured Optimal control over directed graphs: SDP relaxation via block
 % diagnal Lyapunov function
 % Input data: graph Gp, Gc; Dynamic matrices: A, B1, B2, --> cell format
@@ -15,6 +15,8 @@ epsilon = 0.000001;
 
 R_struct = generate_SXlessS(SP);                         % This is the MSI matrix, non-symmetric
 R_struct = antisymmetrize_bin(R_struct);               % This takes the largest symmetrix component
+
+r = degree_separation(R_struct);
 
 %% solution via Yalmip
 % variables
@@ -52,7 +54,7 @@ Const = [X-epsilon*eye(n*N) >=0, ...
 % cost function
 Obj = trace(Q*X)+trace(R*Y);
 
-ops = sdpsettings('solver','mosek');
+ops = sdpsettings('solver','sedumi');
 Info = optimize(Const,Obj,ops);
 % solution
 

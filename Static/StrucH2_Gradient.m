@@ -1,4 +1,4 @@
-function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,K0)
+function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Q,R,K0,SP)
     % the code solves the structured H2 problem using gradient method
 
     
@@ -8,7 +8,7 @@ function [Kopt,Jopt,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,K0)
 
     [Amat, Bmat1, Bmat2] = NetStateModel(A,B1,B2,Gp); 
     
-    SP = kron(Gc+eye(N),ones(m,n));  %% sparsity patten
+    %SP = kron(Gc+eye(N),ones(m,n));  %% sparsity patten
     
     %% Initial Stablization Structured controller    
     %K0 = StruStaP1(A,B1,B2,Gp,Gc);

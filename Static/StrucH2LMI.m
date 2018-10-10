@@ -1,4 +1,4 @@
-function [K,J,Jdiag] = StrucH2LMI(A,B1,B2,Gp,Gc,Q,R,SP)
+function [K,J,Jdiag] = StrucH2LMI(A,B1,B2,Gp,Q,R,SP)
 % Structured Optimal control over directed graphs: SDP relaxation via block
 % diagnal Lyapunov function
 % Input data: graph Gp, Gc; Dynamic matrices: A, B1, B2, --> cell format
@@ -48,7 +48,7 @@ Const = [X-epsilon*eye(n*N) >=0, ...
 % cost function
 Obj = trace(Q*X)+trace(R*Y);
 
-ops = sdpsettings('solver','mosek');
+ops = sdpsettings('solver','sedumi');
 Info = optimize(Const,Obj,ops);
 % solution
 

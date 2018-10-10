@@ -10,7 +10,8 @@ L = 16; %number of agents with full information
 %Nn = 4;
 
 Num = length(Nn);
-J   = zeros(Num,5);
+J   = zeros(Num,7);
+degrees =zeros(1,2);
 Index = Num;
 
 %for Index = 1:Num
@@ -21,7 +22,7 @@ for leaders = 0 : 1 : L
     %Gp        = Gc;
     [Gc,Dist] = MeshGraphLeaders(n,leaders);    %%%%% See description of function. 
     %Gc = bin(RandomInfoStructure(n));            %%This creates a dense random S
-
+    Gc2=MeshGraphReduced(n,leaders);
 %% Dynamics
 % Dynamic matrices
     A  = cell(n^2,n^2);   % matrices for A
@@ -33,8 +34,8 @@ for leaders = 0 : 1 : L
         A{i,i} = [1 1; 1 2];
         for j = i+1:n^2
             if Gp(i,j) == 1
-                A{i,j} = 50*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2); %%INCREASED THE COUPLINGS
-                A{j,i} = 50*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2);
+                A{i,j} = 15*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2); %%INCREASED THE COUPLINGS
+                A{j,i} = 15*exp(-norm(Dist(i,:)-Dist(j,:)))*eye(2);
             end
         end
     end
@@ -42,6 +43,7 @@ for leaders = 0 : 1 : L
 
     [As, B1s, B2s] = NetStateModel(A,B1,B2,Gp);
     SP = bin(kron(Gc+eye(n^2),ones(1,2)));  %% sparsity patten +eye(n^2)
+    SP2= bin(kron(Gc2+eye(n^2),ones(1,2)));
 
 %% Performance
 Q  = eye(2*n^2); R = eye(1*n^2);
@@ -56,12 +58,16 @@ Q  = eye(2*n^2); R = eye(1*n^2);
 
 
 %% Structured Optimal control P2: LMI
-[Ko1,Jo1,Jdiag] = StrucH2LMI(A,B1,B2,Gp,Gc,Q,R,SP);                     %Block Diagonal
-[Ko1new,Jo1new,Jdiagnew] = StrucH2LMI_new(A,B1,B2,Gp,Gc,Q,R,SP);      %Sparsity Invariance
+[Ko1,Jo1,Jdiag] = StrucH2LMI(A,B1,B2,Gp,Q,R,SP);                     %Block Diagonal
+[Ko1new,Jo1new,Jdiagnew,rnew] = StrucH2LMI_new(A,B1,B2,Gp,Q,R,SP);      %Sparsity Invariance
+
+[Ko1new2,Jo1new2,Jdiagnew2,rnew2] = StrucH2LMI_new(A,B1,B2,Gp,Q,R,SP2);      %Graph with max cliques
 
 %% Structured Optimal control P2: gradient projection
-[Ko2,Jo2,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,Ko1);                  %% Initial K from block-diagonal method
-[Ko2new,Jo2new,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Gc,Q,R,Ko1new);  %% Initial K from sparsity invariance method
+[Ko2,Jo2,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Q,R,Ko1,SP);                  %% Initial K from block-diagonal method
+[Ko2new,Jo2new,Iter] = StrucH2_Gradient(A,B1,B2,Gp,Q,R,Ko1new,SP);  %% Initial K from sparsity invariance method
+
+[Ko2new2,Jo2new2,Iter2] = StrucH2_Gradient(A,B1,B2,Gp,Q,R,Ko1new2,SP2);  %% Initial K from reduced cliques
 
 %% Augmented Lagragian Method by Lin et al
 %[Jaugl,Kaugl] = SH2_AugLag(As,B1s,B2s,Q,R,SP);
@@ -78,8 +84,8 @@ Jc = sqrt(trace(lyap((As - B2s*Kc)',Q + Kc'*R*Kc)*(B1s*B1s')));
 
 
 
-J(leaders+1,:) = [Jo1,Jo2,Jo1new,Jo2new,Jc];
-
+J(leaders+1,:) = [Jo1,Jo2,Jo1new,Jo2new,Jo1new2,Jo2new2,Jc];
+degrees(leaders+1,:)=[rnew,rnew2]
 end
 
 plots;
