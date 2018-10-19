@@ -1,0 +1,74 @@
+
+
+%%% Example where there is no diagonal Lyapunov function, but we can find a
+%%% sparse Lyapunov function with sparsity invariance
+
+clear;close all
+
+%A=3*[2 1 0;0 -5 1;-0.67 0.89 0.5];
+%=10*[2 1 1;2 -5 1;1 -0.89 0.5];
+A=[2 1 5;0 -1 1;-1 1 0.5];
+%B2=eye(3);
+B2=[1 -1 0;0 0 -1;1 0 1];
+B1=eye(3);
+
+n= size(A,1);
+m=size(B2,2);
+  
+S=[1 1 0;1 1 1;0 1 1]; %information structure
+
+T=[1 1 0;1 1 1;0 0 1]; %chosen %
+Rstruct=[1 1 0;1 1 0;0 0 1]; % Chosen R *** notice, cannot be computed with our simple procedure
+%% Performance
+Q  =eye(n); R = eye(m);
+
+
+
+
+%% Structured Optimal control P2: LMI
+[Ko1,Jo1] = StrucH2LMI(A,B1,B2,Q,R,S);                     %Block Diagonal
+
+
+disp('NOTICE THAT THE ABOVE PROGRAM IS INFEASIBLE')
+disp('EIGENVALUES OF A-B*K ARE:')
+
+EIGENVALUES_CLOSED_LOOP=eig(A-B2*Ko1)
+disp('PRESS ENTER TO CONTINUE')
+pause
+
+[Ko1new,Jo1new,X] = StrucH2LMI_new(A,B1,B2,Q,R,T,Rstruct);      %Sparsity Invariance
+ %Lyapunoc function
+
+Kc = lqr(A,B2,Q,R); %centralized
+
+
+%% check stability and that P is a lyap function
+disp('We recover the following distributed controller')
+Ko1new
+
+disp('yielding a cost of')
+Jo1new
+
+disp('which stabilizes the closed loop')
+stability=eig(A-B2*Ko1new)
+
+disp('and admits a separable lyapunov function')
+P=inv(X)
+
+disp('which satisfies the Gramian equation')
+is_lyap=eig(P*(A-B2*Ko1new)+(A-B2*Ko1new)'*P+P*B1*B1'*P)
+
+disp('The cost achieved by the optimal centralized controller is')
+
+Jc = sqrt(trace(lyap((A - B2*Kc)',Q + Kc'*R*Kc)*(B1*B1')))
+
+
+
+
+%plots;
+
+
+
+
+
+
