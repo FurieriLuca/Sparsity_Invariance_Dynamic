@@ -1,5 +1,6 @@
 
 
+
 %%% Example where there is no diagonal Lyapunov function, but we can find a
 %%% sparse Lyapunov function with sparsity invariance
 

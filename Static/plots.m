@@ -41,8 +41,8 @@ yticks(0:2:2*L)
 
 
 
-plot(leaders_vec(1,:),degrees(:,1),'-bo','LineWidth',3,'MarkerSize',15);
-plot(leaders_vec(1,:),degrees(:,2),'-gx','LineWidth',3,'MarkerSize',15);
+plot(lead(1,:),degrees(:,1),'-bo','LineWidth',3,'MarkerSize',15);
+plot(lead(1,:),degrees(:,2),'-gx','LineWidth',3,'MarkerSize',15);
 set(gca,'fontsize',30,'fontweight','bold')
 xlabel('L','fontweight','bold','fontsize',30);
 ylabel('separation','fontweight','bold','fontsize',30)

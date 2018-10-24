@@ -5,7 +5,7 @@ function [K,J,X1] = StrucH2LMI_new(A,B1,B2,Q,R,T,Rstruct)
 %             Performance Index: Q1,Q2 --> penalize on state, Q1: absolute, Q2: relative
 % Outpute data: Jdiag, performance, K, conresponding controller
 
-epsilon = 0.000001;
+epsilon = 0.1;
 
 n=size(A,1);
 m=size(B2,2);
