@@ -1,18 +1,18 @@
-% Solve an optimal decentralized control problem using the sparisty invirance approch [0]
+% Solve an optimal decentralized control problem using the sparsity invariance approch [0]
 %
 %         min <K> ||P11 + P12 * K(I - GK)^(-1) * P21||
 %         s.t.      K \in S
 %
 % where P11, P12, G, P21 are transfer functions (plant dynamics), and S is
-% a given sparsity constraint. In [0], we propose to retrict the problem into
+% a given sparsity constraint. In [0], we propose to restrict the problem into
 %
 %         min <X,Y> ||T1 - T2*Y*T3||
-%         s.t.      Y \in RH
+%         s.t.      Y,X \in RH
 %                   X - I = GY
 %                   Y \in T, X \in R
 %
 % where RH denotes real-rational proper stable transfer functions,
-% T, R are sparsity constraints, coming from the sparsity invirance approach
+% T, R are sparsity constraints, coming from the sparsity invariance approach
 %
 % Authors: L. Furieri, Automatic Control Laboratory, ETH.
 %          Y. Zheng, Department of Engineering Science, University of Oxford
@@ -24,11 +24,10 @@
 % [3] "An efficient solution to multi-objective control problems with LMI objectives"
 
 clear all;
-clc;
-%clc;
 
-N = 7;           % order of the controller
-a = 2;           % defines the basis for RH_infinity as {1/(s+a)^i}
+order = 7;           % order of the controller
+a = 2;
+% defines the basis for RH_infinity as {1/(s+a)^i}
 
 %% generate plant data
 generate_plant_data;         % plant definition and relevant data
@@ -57,10 +56,11 @@ Rbin = generate_SXlessS(Tbin);     % Matrix "R_MSI"
 %Rbin=eye(n);
 
 fprintf('==================================================\n')
-fprintf('              Sparisty Invariance Approch         \n')
+fprintf('              Sparsity Invariance Approch         \n')
 fprintf('==================================================\n')
 
 %% Encode sparsity Y(s) \in Sparse(T) and G(s)Y(s) in Sparse(R)
+
 sparsity_constraints;
 
 %% H2 norm minimization, SDP formulation
@@ -90,59 +90,52 @@ fprintf('==================================================\n')
 options = sdpsettings('allownonconvex',0,'solver','mosek','verbose',1);
 sol     = optimize(Constraints,gamma,options);
 
-%CQ   = round(value(CQv),6);  %rounding to avoid false non-zeros
-%DQ   = round(value(DQv),6);
-CQ  = value(CQv);
-DQ  = value(DQv);
+CQ   = value(CQv);  %rounding to avoid false non-zeros
+DQ   = value(DQv);
 
 Vgamma = sqrt(value(gamma));  % value of the H2 norm!
-fprintf('\n H2 norm of the closed loop system is %6.4f \n', Vgamma);
+fprintf('\n ***** H2 norm of the closed loop system is %6.4f ***** \n', Vgamma);
 
 %% RECOVER Q(s) and K(s) to check sparsities
+disp('We check the sparsity of the resulting controller by substituting a random value for "s" in K(s)')
 Gi = (s*eye(size(AiQ,1))-AiQ)\BiQ;
 for i = 1:n
     for j = 1:m
-        Y(i,j) = CQ(i,(j-1)*N+1:j*N)*Gi + DQ(i,j);
+        Y(i,j) = CQ(i,(j-1)*order+1:j*order)*Gi + DQ(i,j);
     end
 end
-K = Y/(eye(n)+Gs*Y);
-GQ      = Gs*Y;
-GQsubs  = double(subs(GQ,s,rand));           %just get rid of s to get the sparsityKbin
-GQbin   = bin(GQsubs);
+
+X=eye(n)-Gs*Y;
+
+test_T= Y;
+test_T_subs  = double(subs(Y,s,rand));
+test_R= X;
+test_R_subs  = double(subs(X,s,rand));
+K = -Y*inv(X);
 Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
-Kbin    = bin(Ksubs);
+Kbin    = bin(Ksubs)
+
 
 %stability check
+unstable=0;
+disp('We check the stability of the closed-loop system K(I-GK)^-1:')
 Closed_Loop=K*inv(eye(n)-Gs*K);
 for(i=1:m)
     for(j=1:n)
+        fprintf('   Percentage %6.4f \n', 100*(n*(i-1)+j)/n/n )
         if(isstable(syms2tf(Closed_Loop(i,j)))==0)
-            disp('PROBLEM: Closed Loop is not stable')
+            unstable=1
         end
     end
 end
-%{
-Closed_Loop=Ktf*inv(eye(n)-G*Ktf);
-for(i=1:m)
-    for(k=1:n)
-        if(isstable(Closed_Loop(i,j))==0)
-            i
-            j
-        end
-    end
+
+if(unstable==1)
+    disp('!!!The closed-loop is UNSTABLE!!!')
+else
+    disp('The closed-loop is stable. Success.')
 end
-%}
 
 
-
-
-%%  Verfication -- transfer functions
-% s  = tf('s');
-% Y = CQ*((s*eye(size(AiQ,1)*n)-kron(eye(n),AiQ))\kron(eye(n),BiQ)) + DQ;
-% K = Y/(eye(n)+G*Y);
-%
-% Gdz = P11 + P12*(K/(eye(n) - G*K))*P21
-% norm(Gdz,2)
 
 
 

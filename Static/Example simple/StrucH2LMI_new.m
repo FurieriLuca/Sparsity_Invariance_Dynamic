@@ -1,4 +1,4 @@
-function [K,J,X1] = StrucH2LMI_new(A,B1,B2,Q,R,T,Rstruct)
+function [K,J,X1,Z1] = StrucH2LMI_new(A,B1,B2,Q,R,T,Rstruct)
 % Structured Optimal control over directed graphs: SDP relaxation via block
 % diagnal Lyapunov function
 % Input data: graph Gp, Gc; Dynamic matrices: A, B1, B2, --> cell format

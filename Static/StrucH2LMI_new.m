@@ -14,7 +14,7 @@ epsilon = 0.000001;
 [Amat, Bmat1, Bmat2] = NetStateModel(A,B1,B2,Gp); 
 
 R_struct = generate_SXlessS(SP);                         % This is the MSI matrix, non-symmetric
-R_struct = antisymmetrize_bin(R_struct);               % This takes the largest symmetrix component
+R_struct = antisymmetrize_bin(R_struct)               % This takes the largest symmetrix component
 
 r = degree_separation(R_struct);
 

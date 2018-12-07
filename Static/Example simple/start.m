@@ -37,7 +37,7 @@ EIGENVALUES_CLOSED_LOOP=eig(A-B2*Ko1)
 disp('PRESS ENTER TO CONTINUE')
 pause
 
-[Ko1new,Jo1new,X] = StrucH2LMI_new(A,B1,B2,Q,R,T,Rstruct);      %Sparsity Invariance
+[Ko1new,Jo1new,X,Y] = StrucH2LMI_new(A,B1,B2,Q,R,T,Rstruct);      %Sparsity Invariance
  %Lyapunoc function
 
 Kc = lqr(A,B2,Q,R); %centralized
