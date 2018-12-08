@@ -1,11 +1,11 @@
-function [K,J,Jdiag] = StrucH2LMI_new(A,B1,B2,Gp,Gc,Q,R,SP)
+function [K,J,Jdiag,r] = StrucH2LMI_new(A,B1,B2,Gp,Q,R,SP)
 % Structured Optimal control over directed graphs: SDP relaxation via block
 % diagnal Lyapunov function
 % Input data: graph Gp, Gc; Dynamic matrices: A, B1, B2, --> cell format
 %             Performance Index: Q1,Q2 --> penalize on state, Q1: absolute, Q2: relative
 % Outpute data: Jdiag, performance, K, conresponding controller
 
-epsilon = 0.001;
+epsilon = 0.000001;
 
 %% Obtain dynamics matrices
 [N,~] = size(Gp);               % Number of nodes in the graph
@@ -14,7 +14,9 @@ epsilon = 0.001;
 [Amat, Bmat1, Bmat2] = NetStateModel(A,B1,B2,Gp); 
 
 R_struct = generate_SXlessS(SP);                         % This is the MSI matrix, non-symmetric
-R_struct = antisymmetrize_bin(R_struct);               % This takes the largest symmetrix component
+R_struct = antisymmetrize_bin(R_struct)               % This takes the largest symmetrix component
+
+r = degree_separation(R_struct);
 
 %% solution via Yalmip
 % variables
@@ -32,6 +34,7 @@ end
 %for i = 2:N
 %end
 
+
 Z = sdpvar(N*m,N*n);        %%  Z has the sparsity of T = SP
 for i = 1:N*m                     
     for j = 1:N*n
@@ -40,6 +43,7 @@ for i = 1:N*m
         end
     end
 end
+
 
 % constraint
 Y = sdpvar(N*m);

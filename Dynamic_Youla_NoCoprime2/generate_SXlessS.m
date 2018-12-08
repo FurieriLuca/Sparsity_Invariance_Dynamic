@@ -10,18 +10,16 @@ X = ones(n,n);
 
 % Analytical solution with complexity mn^2
 for i = 1:m
-        for k = 1:n
-                if S(i,k)==0
-                        for j = 1:n
-                                if S(i,j) == 1
-                                        X(j,k) = 0;
-                                end
-                        end
+    for k = 1:n
+        if S(i,k)==0
+            for j = 1:n
+                if S(i,j) == 1
+                    X(j,k) = 0;
                 end
+            end
         end
+    end
 end
-
-
 
 end
 

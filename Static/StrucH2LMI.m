@@ -1,11 +1,11 @@
-function [K,J,Jdiag] = StrucH2LMI(A,B1,B2,Gp,Gc,Q,R,SP)
+function [K,J,Jdiag] = StrucH2LMI(A,B1,B2,Gp,Q,R,SP)
 % Structured Optimal control over directed graphs: SDP relaxation via block
 % diagnal Lyapunov function
 % Input data: graph Gp, Gc; Dynamic matrices: A, B1, B2, --> cell format
 %             Performance Index: Q1,Q2 --> penalize on state, Q1: absolute, Q2: relative
 % Outpute data: Jdiag, performance, K, conresponding controller
 
-epsilon = 0.001;
+epsilon = 0.000001;
 
 %% Obtain dynamics matrices
 [N,~] = size(Gp);               % Number of nodes in the graph
