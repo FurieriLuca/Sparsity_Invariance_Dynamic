@@ -26,7 +26,7 @@
 clear all;
 %clc;
 
-N = 7;           % order of the controller
+order = 7;           % order of the controller
 a = 2;           % defines the basis for RH_infinity as {1/(s+a)^i}
 
 %% generate plant data
@@ -60,6 +60,7 @@ fprintf('              Sparisty Invariance Approch         \n')
 fprintf('==================================================\n')
 
 %% Encode sparsity Y(s) \in Sparse(T) and G(s)Y(s) in Sparse(R)
+
 sparsity_constraints;              
 
 %% H2 norm minimization, SDP formulation
@@ -86,30 +87,30 @@ fprintf('Done \n')
 fprintf('Step 4: call SDP solver to obtain a solution ... \n')
 fprintf('==================================================\n')
 
-options = sdpsettings('allownonconvex',0,'solver','sedumi','verbose',1);
+options = sdpsettings('allownonconvex',0,'solver','mosek','verbose',1);
 sol     = optimize(Constraints,gamma,options);
 
 %CQ   = round(value(CQv),6);  %rounding to avoid false non-zeros                                                                                                                       
 %DQ   = round(value(DQv),6);
-CQ  = value(CQv);
-DQ  = value(DQv);
+
 
 Vgamma = sqrt(value(gamma));  % value of the H2 norm!
 fprintf('\n H2 norm of the closed loop system is %6.4f \n', Vgamma);
 
-%% RECOVER Q(s) and K(s) to check sparsities
+
+CQYr  = value(CQv);
+DQYr  = value(DQv);
 Gi = (s*eye(size(AiQ,1))-AiQ)\BiQ;
-for i = 1:n
-    for j = 1:m
-        Y(i,j) = CQ(i,(j-1)*N+1:j*N)*Gi + DQ(i,j);
+for(i=1:m)
+    for(j=1:n)
+        Yr(i,j) = CQYr(i,(j-1)*order+1:j*order)*Gi + DQYr(i,j);
     end
 end
-K = Y/(eye(n)+Gs*Y);
-GQ      = Gs*Y;
-GQsubs  = double(subs(GQ,s,rand));           %just get rid of s to get the sparsityKbin
-GQbin   = bin(GQsubs);  
-Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
-Kbin    = bin(Ksubs);
+
+Gnoms=Gs*inv(eye(m)-Knoms*Gs);
+K = -(U_tilda+M*Yr)*inv(V_tilda-N*Yr)
+checks;
+
 
 %%  Verfication -- transfer functions
 % s  = tf('s');
