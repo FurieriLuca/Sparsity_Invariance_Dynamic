@@ -6,8 +6,8 @@
 % where P11, P12, G, P21 are transfer functions (plant dynamics), and S is
 % a given sparsity constraint. In [0], we propose to retrict the problem into
 %
-%         min <X,Y> ||P11 + P12 * Y * P21||
-%         s.t.      Y, X, XG, I+YG \in RH
+%         min <X,Y> ||T1 - T2*Y*T3||
+%         s.t.      Y \in RH
 %                   X - I = GY
 %                   Y \in T, X \in R
 %
@@ -98,5 +98,5 @@ fprintf('\n H2 norm of the closed loop system is %6.4f \n', Vgamma);
 
 
 
-disp(' We will now perform stability checks\n')
+disp('\n\n\n We will now perform stability checks\n')
 checks;
