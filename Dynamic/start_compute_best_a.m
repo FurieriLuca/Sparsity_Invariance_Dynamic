@@ -1,37 +1,21 @@
-% Solve an optimal decentralized control problem using the sparsity invariance (SI) approach [0]
-%
-%         min <K> ||P11 + P12 * K(I - GK)^(-1) * P21||
-%         s.t.      K \in S
-%
-% where P11, P12, G, P21 are transfer functions (plant dynamics), and S is
-% a given sparsity constraint. In [0], we propose to restrict the problem into
-%
-%         min <X,Y> ||T1 - T2*Q*T3||
-%         s.t.      Q \in RH
-%                   
-%                   Y_Q \in Sparse(T), X_Q \in Sparse(R)
-%
-% where Y_Q, X_Q are affine functions of the Youla parameter Q defined in [0] and where RH denotes real-rational proper stable transfer functions,
-% T, R are binary matrices inducing sparsity constraints, coming from the SI approach
-%
-% Authors: L. Furieri, Automatic Control Laboratory, ETH.
-%          Y. Zheng, Department of Engineering Science, University of Oxford
-%
-% References
-% [0] "Sparsity Invariance for Convex Design of Distributed Controllers"
-% [1] "A Characterization of Convex Problems in Decentralized Control",
-% [2] "Q-Parametrization and an SDP for Hinfinity-optimal Decentralized Control"
-% [3] "An efficient solution to multi-objective control problems with LMI objectives"
+%%%%%%%
+%This file is equivalent to start, but it runs the optimzation for all
+%values of a in the in the interval [0.1,10] with a step of 0.1
+%It generates a corresponding file "results.txt" with the results. The best
+%choice is for a=2.
 
 clear all;
 clc;
+fid = fopen('results.txt','w');
+
 %clc;
-
+for(i=1:100)
 N = 6;           % order of the controller
-a = 2;           % defines the basis for RH_infinity as {1/(s+a)^i}
+a = i/10;   %2 %2%2%2%2        % defines the basis for RH_infinity as {1/(s+a)^i}
 
-%% Definition og G, T1, T2, T3
-generate_plant_data;         
+%% generate plant data
+generate_plant_data;         % plant definition and relevant data
+%load('plant_data.mat');
 
 %% QI Sparsity Constraints defined in [1]
 Sbin1 = [0 0 0 0 0;0 1 0 0 0;0 1 0 0 0;0 1 0 0 0;0 1 0 0 1];
@@ -48,6 +32,10 @@ Sbin7 = [1 0 0 0 0;
     0 1 0 0 0;
     0 1 0 0 0;
     0 1 0 0 1];
+Sbin8 = [0 1 0 0 0;0 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %QI-closest to Sbin9
+Sbin9 = [1 1 0 0 0;1 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %not QI
+Sbin10 = [1 0 0 0 0;1 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %not QI, feasible with sparsity invariance
+Sbin11 = [0 0 0 0 0;0 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %QI, closest to Sbin10, not feasible!
 
 Sbin = Sbin7;
 QI   = test_QI(Sbin,Delta);        % variable QI used to avoid adding useless constraints later if QI=1 and reduce execution time
@@ -61,7 +49,7 @@ fprintf('              Sparsity Invariance Approch         \n')
 fprintf('==================================================\n')
 
 %% Encode sparsity Y(s) \in Sparse(T) and G(s)Y(s) in Sparse(R)
-sparsity_constraints;
+sparsity_constraints2;
 
 %% H2 norm minimization, SDP formulation
 fprintf('Step 3: Encoding the other LMI constraint ...')
@@ -97,17 +85,21 @@ DQ  = value(DQv);
 
 Vgamma = sqrt(value(gamma));  % value of the H2 norm!
 fprintf('\n H2 norm of the closed loop system is %6.4f \n', Vgamma);
+fprintf(fid,'a=%f, norm=%f\n',a,Vgamma);
 
+end
+
+%{
 %% RECOVER Q(s) and K(s) to check sparsities
 Gi = (s*eye(size(AiQ,1))-AiQ)\BiQ;
 for i = 1:n
     for j = 1:m
-        Q(i,j) = CQ(i,(j-1)*N+1:j*N)*Gi + DQ(i,j);
+        Y(i,j) = CQ(i,(j-1)*N+1:j*N)*Gi + DQ(i,j);
     end
 end
-YQ  =  (Knom+inv(eye(5)-Knom*G)*Q)*inv(eye(5)-G*Knom);
+YQ=(Knom+inv(eye(5)-Knom*G)*Y)*inv(eye(5)-G*Knom);
 
-K   =  YQ*inv(eye(5)+G*YQ);
+K=YQ*inv(eye(5)+G*YQ);
 
 Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
 Kbin    = bin(Ksubs);
@@ -121,12 +113,17 @@ pretty_K;
 Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
 Kbin    = bin(Ksubs);
 
+for(i=1:m)
+    for(j=1:n)
+        if(Kbin(i,j)==0)
+            K(i,j)=0;
+        end
+    end
+end
 
-
-%We can use this in the Simulink model "simulation.slx" to check everything works
-Gmodel  =  syms2tf(G);
-Kmodel  =  syms2tf(K_pretty);
-Kmodel2 =  syms2tf(K);
+Gmodel=syms2tf(G);
+Kmodel=syms2tf(K_pretty);
+Kmodel2=syms2tf(K);
 
 %stability check
 %Closed_Loop=K*inv(eye(n)-Gs*K)*P21s;
@@ -160,5 +157,5 @@ end
 % Gdz = P11 + P12*(K/(eye(n) - G*K))*P21
 % norm(Gdz,2)
 
-
+%}
 

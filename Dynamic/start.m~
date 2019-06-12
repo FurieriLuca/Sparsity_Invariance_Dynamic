@@ -1,18 +1,18 @@
-% Solve an optimal decentralized control problem using the sparsity invariance (SI) approach [0]
+% Solve an optimal decentralized control problem using the sparisty invirance approch [0]
 %
 %         min <K> ||P11 + P12 * K(I - GK)^(-1) * P21||
 %         s.t.      K \in S
 %
 % where P11, P12, G, P21 are transfer functions (plant dynamics), and S is
-% a given sparsity constraint. In [0], we propose to restrict the problem into
+% a given sparsity constraint. In [0], we propose to retrict the problem into
 %
-%         min <X,Y> ||T1 - T2*Q*T3||
-%         s.t.      Q \in RH
-%                   
-%                   Y_Q \in Sparse(T), X_Q \in Sparse(R)
+%         min <X,Y> ||T1 - T2*Y*T3||
+%         s.t.      Y \in RH
+%                   X - I = GY
+%                   Y \in T, X \in R
 %
-% where Y_Q, X_Q are affine functions of the Youla parameter Q defined in [0] and where RH denotes real-rational proper stable transfer functions,
-% T, R are binary matrices inducing sparsity constraints, coming from the SI approach
+% where RH denotes real-rational proper stable transfer functions,
+% T, R are sparsity constraints, coming from the sparsity invirance approach
 %
 % Authors: L. Furieri, Automatic Control Laboratory, ETH.
 %          Y. Zheng, Department of Engineering Science, University of Oxford
@@ -61,7 +61,7 @@ fprintf('              Sparsity Invariance Approch         \n')
 fprintf('==================================================\n')
 
 %% Encode sparsity Y(s) \in Sparse(T) and G(s)Y(s) in Sparse(R)
-sparsity_constraints;
+sparsity_constraints2;
 
 %% H2 norm minimization, SDP formulation
 fprintf('Step 3: Encoding the other LMI constraint ...')
@@ -105,9 +105,9 @@ for i = 1:n
         Q(i,j) = CQ(i,(j-1)*N+1:j*N)*Gi + DQ(i,j);
     end
 end
-YQ  =  (Knom+inv(eye(5)-Knom*G)*Q)*inv(eye(5)-G*Knom);
+YQ=(Knom+inv(eye(5)-Knom*G)*Q)*inv(eye(5)-G*Knom);
 
-K   =  YQ*inv(eye(5)+G*YQ);
+K=YQ*inv(eye(5)+G*YQ);
 
 Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
 Kbin    = bin(Ksubs);
@@ -121,12 +121,18 @@ pretty_K;
 Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
 Kbin    = bin(Ksubs);
 
-
+for(i=1:m)
+    for(j=1:n)
+        if(Kbin(i,j)==0)
+            K(i,j)=0; %poliseh
+        end
+    end
+end
 
 %We can use this in the Simulink model "simulation.slx" to check everything works
-Gmodel  =  syms2tf(G);
-Kmodel  =  syms2tf(K_pretty);
-Kmodel2 =  syms2tf(K);
+Gmodel=syms2tf(G);
+Kmodel=syms2tf(K_pretty);
+Kmodel2=syms2tf(K);
 
 %stability check
 %Closed_Loop=K*inv(eye(n)-Gs*K)*P21s;
