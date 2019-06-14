@@ -1,0 +1,76 @@
+
+
+clc
+%%% Finding a Gamma to improve performance. Still NOT COHERENT
+
+clear;close all
+
+%A=3*[2 1 0;0 -5 1;-0.67 0.89 0.5];
+%=10*[2 1 1;2 -5 1;1 -0.89 0.5];
+A=[2 1 5;0 -1 1;-1 1 0.5];
+%B2=eye(3);
+B2=[1 -1 0;0 0 -1;0 0 1];
+B1=eye(3);
+
+n= size(A,1);
+m=size(B2,2);
+  
+S=[1 1 0;1 1 1;0 1 1]; %information structure
+
+ T=[1 1 0;1 1 0;0 0 1]; %chosen %
+ Rstruct=[1 1 0;1 1 0;0 0 1]; % Chosen R *** notice, cannot be computed with our simple algorithm
+
+% choice two
+%T = ones(n);
+%Rstruct = ones(n);
+%Rstruct=[1 1 0;1 1 0;0 0 1];
+
+
+%% Performance
+Q  =eye(n); R = eye(m); 
+maxIter = 2;
+
+J_true = zeros(maxIter,1);
+J_restriction = zeros(maxIter,1);
+K = cell(maxIter,1);
+
+% initial solution
+[K0,J0_true,X0,Y0,J0_restriction] = StrucH2LMI_new_Gamma(A,B1,B2,Q,R,T,Rstruct,eye(n)); %Lyapunov function
+
+Kpre = K0;
+J_true(1)        = J0_true;
+J_restriction(1) = J0_restriction;
+K{1} = K0;
+for iter = 2:maxIter
+
+    Kin = Kpre;    
+    % Compute Gamma
+    [Gamma,X,Y,Z,H2cost0]  = compute_gamma(A,B1,B2,Kin,T,Rstruct,Q,R); 
+    
+    % feasibility check % X, Y, Z is a feasible solution to the problem
+    % below; SeDuMI should return a solution with lower cost, but currently
+    % it didn't.
+    [flag,Cost] = checkfeasi(X,Y,Z,A,B1, B2, Q,R, Gamma,T,Rstruct);
+    
+    % New controller
+    [K1,J1_true,X1,Y1,J1_restriction] = StrucH2LMI_new_Gamma(A,B1,B2,Q,R,T,Rstruct,Gamma);   % Now we use the Gamma we computed above.
+
+    Kpre = K1;
+    
+    J_true(iter)        = J1_true;
+    J_restriction(iter) = J1_restriction;
+    K{iter}             = Kpre;
+    
+end
+
+J_true
+
+J_restriction
+
+% fprintf('\n H2 norm_squre: %6f   %6f\n',J0_true^2, J1_true^2)
+% fprintf('Restriction  : %6f   %6f\n',J0_restriction, J1_restriction)
+% 
+% X*Gamma
+
+
+

@@ -5,7 +5,7 @@ function [K,J,X1,Y1,J_restriction] = StrucH2LMI_new_Gamma(A,B1,B2,Q,R,T,Rstruct,
 %             Performance Index: Q1,Q2 --> penalize on state, Q1: absolute, Q2: relative
 % Outpute data: Jdiag, performance, K, conresponding controller
 
-epsilon = 0.1;
+epsilon = 1e-6;
 
 n=size(A,1);
 m=size(B2,2);
@@ -43,8 +43,13 @@ Const = [Const,X-epsilon*eye(n) >=0, ...
 Obj = trace(Q*X)+trace(R*Z);
 
 ops = sdpsettings('solver','sedumi');
+%ops = sdpsettings('solver','sdpt3','verbose',1);
+
 Info = optimize(Const,Obj,ops);
 % solution
+
+J_restriction  = value(Obj);%trace(Q*X1)+trace(R*Z1);
+
 
 X1 = value(X);Z1 = value(Z);Y1 = value(Y);
 
@@ -54,6 +59,5 @@ K = Y1*X1^(-1);  % controller
 P = lyap((A+B2*K)',Q+K'*R*K);
 J = sqrt(trace(P*(B1*B1')));
 
-J_restriction  = trace(Q*X1)+trace(R*Z1);
 end
 

@@ -1,23 +1,40 @@
-function [ Gamma,X,Y] = compute_gamma( A,B1,B2,K,T,Rstruct,Q,R )
+function [ Gamma,X,Y,Z,H2cost] = compute_gamma( A,B1,B2,K,T,Rstruct,Q,R )
 
 n=size(A,1);
 m=size(B2,2);
 X=sdpvar(n,n);
 
 ops = sdpsettings('solver','sedumi');
+%ops = sdpsettings('solver','sdpt3');
 
-epsilon=0.1;
-Z=sdpvar(m,m);
-optimize([X-epsilon*eye(n)>=0,X*(A+B2*K)'+(A+B2*K)*X+B1*B1'+epsilon*eye(n)<=0,[Z K*X;(K*X)' X]>=0],trace(Q*X)+trace(R*Z),ops); %here I compute X to minimize the restriction cost
-X=value(X);
-Y=K*X;
+% epsilon=0.1;
+% Z=sdpvar(m,m);
+% optimize([X-epsilon*eye(n)>=0,X*(A+B2*K)'+(A+B2*K)*X+B1*B1'+epsilon*eye(n)<=0,[Z K*X;(K*X)' X]>=0],trace(Q*X)+trace(R*Z),ops); %here I compute X to minimize the restriction cost
+% X=value(X);
+% Y=K*X;
+
+% compute the optimal cost
+epsilon = 1e-3;
+Cost = trace((Q+K'*R*K)*X);
+Const = [X-epsilon*eye(n)>=0,X*(A+B2*K)'+(A+B2*K)*X+B1*B1'+epsilon*eye(n)<=0,];
+optimize(Const,Cost,ops);    
+X = value(X);
+Y = K*X;
+
+H2cost = value(Cost).^(1/2);
+
+Z = sdpvar(m);
+optimize([Z Y; Y' X]>=0,trace(R*Z));
+Z = value(Z);
+
+
 
 Gamma=sdpvar(n,n);
 
 
 for(i=1:m)
     for(j=1:n)
-        if(T(i,j)==1) .  %computes complementary sparsities to use dot product later
+        if (T(i,j)==1)   %computes complementary sparsities to use dot product later
             Tc(i,j)=0;
         else
             Tc(i,j)=1;
