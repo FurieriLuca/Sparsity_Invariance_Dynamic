@@ -30,7 +30,7 @@ for i = 1:N
     end
 end
 %}
-Z = sdpvar(N*m,N*n);        %% Matrix Z has sparsity pattern in Gc
+Z = sdpvar(N*m,N*n,'full');        %% Matrix Z has sparsity pattern in Gc
 for i = 1:N*m                     
     for j = 1:N*n
         if SP(i,j)==0

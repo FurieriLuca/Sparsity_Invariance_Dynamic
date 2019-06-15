@@ -22,7 +22,7 @@ Jo2new=0;
 Jo1new2=0;
 Jo2new2=0;
 Jc=0;
-leaders_vec=[];
+leaders_vec=[14, 15, 3, 11, 2, 5, 9, 16, 8, 13, 7, 1, 12, 6, 10, 4];
 
 
 n         = Nn(Index);
@@ -99,9 +99,9 @@ for leaders = 0 : 1 : L
     
     %%randomly add a leader with full information to Gc and Gc2
     if(leaders<L)
-        [leaders_vec,r]=add_leader_random(leaders_vec,n^2)
-        Gc(leaders_vec(end),:) = ones(1,n^2);
-        Gc2(leaders_vec(end),:) = ones(1,n^2);
+       % [leaders_vec,r]=add_leader_random(leaders_vec,n^2)
+        Gc(leaders_vec(leaders+1),:) = ones(1,n^2);
+        Gc2(leaders_vec(leaders+1),:) = ones(1,n^2);
     end
     
     

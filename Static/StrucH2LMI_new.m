@@ -35,7 +35,7 @@ end
 %end
 
 
-Z = sdpvar(N*m,N*n);        %%  Z has the sparsity of T = SP
+Z = sdpvar(N*m,N*n,'full');        %%  Z has the sparsity of T = SP
 for i = 1:N*m                     
     for j = 1:N*n
         if SP(i,j)==0
