@@ -18,13 +18,13 @@ n = size(A);
         flag = flag + 1;
     end
     
-    temp=X-epsilon*eye(n);
-    if min(eig(temp)) < 0
+    temp=X;
+    if min(eig(temp))<-1.0e-6
             flag=flag+1;
     end
     
     temp =  (A*X+B2*Y)+(A*X+B2*Y)'+B1*B1' + epsilon* eye(n);
-    if max(eig(temp))  > 0
+    if max(eig(temp))  >= 1.0e-6
         flag = flag + 1;
     end
     

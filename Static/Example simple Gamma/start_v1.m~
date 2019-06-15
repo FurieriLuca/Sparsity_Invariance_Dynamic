@@ -1,7 +1,7 @@
 
 
 clc
-%%% Finding a Gamma to improve performance.
+%%% Finding a Gamma to improve performance. Still NOT COHERENT
 
 clear;close all
 
@@ -53,7 +53,7 @@ for iter = 2:maxIter
     [flag,Cost] = checkfeasi(X,Y,Z,A,B1, B2, Q,R, Gamma,T,Rstruct);
     
     % New controller
-    [K1,J1_true,X1,Y1,Z1,J1_restriction] = StrucH2LMI_new_Gamma(A,B1,B2,Q,R,T,Rstruct,Gamma);   % Now we use the Gamma we computed above.
+    [K1,J1_true,X1,Y1,J1_restriction] = StrucH2LMI_new_Gamma(A,B1,B2,Q,R,T,Rstruct,Gamma);   % Now we use the Gamma we computed above.
 
     Kpre = K1;
     

@@ -14,7 +14,7 @@ m=size(B2,2);
 X = sdpvar(n);               %% block diagonal X 
 X=X.*eye(n);
 
-Z = sdpvar(m,n);        %% Matrix Z has sparsity pattern in Gc
+Z = sdpvar(m,n,'full');        %% Matrix Z has sparsity pattern in Gc
 for i = 1:m                     
     for j = 1:n
         if S(i,j)==0

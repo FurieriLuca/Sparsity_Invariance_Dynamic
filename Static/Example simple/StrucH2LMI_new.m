@@ -20,7 +20,7 @@ for i = 1:n
     end
 end
 
-Z = sdpvar(m,n);        %% Matrix Z has sparsity pattern in Gc
+Z = sdpvar(m,n,'full');        %% Matrix Z has sparsity pattern in Gc
 for i = 1:m                     
     for j = 1:n
         if T(i,j)==0
