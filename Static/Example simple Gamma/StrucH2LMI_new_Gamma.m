@@ -28,7 +28,7 @@ Const = [norm((X*Gamma).*(1-Rstruct),2)<= 1.0e-8, norm((Y*Gamma).*(1-T),2)<= 1.0
 % cost function
 Obj = trace(Q*X)+trace(R*Z);
 
-ops = sdpsettings('solver','mosek');
+ops = sdpsettings('solver','sedumi');
 %ops = sdpsettings('solver','sdpt3','verbose',1);
 
 Info = optimize(Const,Obj,ops);

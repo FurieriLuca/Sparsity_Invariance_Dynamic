@@ -4,7 +4,7 @@ n=size(A,1);
 m=size(B2,2);
 X=sdpvar(n,n);
 
-ops = sdpsettings('solver','mosek');
+ops = sdpsettings('solver','sedumi');
 %ops = sdpsettings('solver','sdpt3');
 
 % epsilon=0.1;
@@ -52,7 +52,11 @@ for(i=1:n)
 end
 
 
-optimize([(Y*Gamma).*Tc==zeros(m,n),(X*Gamma).*Rc==zeros(n,n), Gamma>=0],1,ops); %Computes Gamma for sparsity, to include K in the restriction
+%optimize([(Y*Gamma).*Tc==zeros(m,n),(X*Gamma).*Rc==zeros(n,n), Gamma>=0],1,ops); %Computes Gamma for sparsity, to include K in the restriction
+
+optimize([(Y*Gamma).*Tc==zeros(m,n),(X*Gamma).*Rc==zeros(n,n), Gamma>=0, trace(Gamma)>1],1,ops); %Computes Gamma for sparsity, to include K in the restriction
+
+
 Gamma=value(Gamma);
 
 

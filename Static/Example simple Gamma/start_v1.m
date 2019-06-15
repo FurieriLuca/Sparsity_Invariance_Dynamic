@@ -17,8 +17,8 @@ m=size(B2,2);
   
 S=[1 1 0;1 1 1;0 1 1]; %information structure
 
- T=[1 1 0;1 1 0;0 0 1]; %chosen %
- Rstruct=[1 1 0;1 1 0;0 0 1]; % Chosen R *** notice, cannot be computed with our simple algorithm
+T=[1 1 0;1 1 0;0 0 1]; %chosen %
+Rstruct=[1 1 0;1 1 1;0 1 1]; % Chosen R *** notice, cannot be computed with our simple algorithm
 
 % choice two
 %T = ones(n);
@@ -28,7 +28,7 @@ S=[1 1 0;1 1 1;0 1 1]; %information structure
 
 %% Performance
 Q  =eye(n); R = eye(m); 
-maxIter = 2;
+maxIter = 5;
 
 J_true = zeros(maxIter,1);
 J_restriction = zeros(maxIter,1);
