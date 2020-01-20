@@ -27,7 +27,7 @@ clear all;
 clc;
 %clc;
 
-N = 8;           % order of the controller
+N = 3;           % order of the controller
 a = 2;           % defines the basis for RH_infinity as {1/(s+a)^i}
 
 %% generate plant data
@@ -49,18 +49,10 @@ Sbin7 = [1 0 0 0 0;
     0 1 0 0 0;
     0 1 0 0 0;
     0 1 0 0 1];
-Sbin8 = [0 1 0 0 0;0 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %QI-closest to Sbin9
-Sbin9 = [1 1 0 0 0;1 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %not QI
-Sbin10 = [1 0 0 0 0;1 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %not QI, feasible with sparsity invariance
-Sbin10bis = [1 0 0 0 0;1 1 0 0 0;0 1 1 0 0;1 1 1 1 0;0 1 1 1 1];
-Sbin11 = [0 0 0 0 0;0 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 1 1 1]; %QI, closest to Sbin10, not feasible!
-Sbin12 = [1 0 0 0 0;1 1 0 0 0;0 1 1 0 0;0 1 1 1 0;0 1 0 1 1]; %non-QI, new desired
-Sbin13 = [0 0 0 0 0;0 1 0 0 0;0 1 0 0 0;0 1 0 1 0;0 1 0 1 1]; %closest-QI to Sbin12
-
-Sbin = Sbin11;
+Sbin = Sbin1;
 QI   = test_QI(Sbin,Delta);        % variable QI used to avoid adding useless constraints later if QI=1 and reduce execution time
 
-Tbin = Sbin;
+Tbin = Sbin;                       % Matrix "T"
 Rbin = generate_SXlessS(Tbin);     % Matrix "R_MSI"
 %Rbin=eye(n);
 
@@ -72,8 +64,8 @@ fprintf('==================================================\n')
 sparsity_constraints;
 
 %% H2 norm minimization, SDP formulation
-fprintf('Step 3: Encoding the other LMI constraint ...')
-Qstatic = [CQv DQv];
+fprintf('Step 4: Encoding the other LMI constraint ...')
+Qstatic = [CQYv DQYv];
 P       = sdpvar(size(A1_hat,1),size(A1_hat,1));
 S       = sdpvar(size(A1_hat,2),size(B2_hat,1));
 R       = sdpvar(size(A2_hat,1),size(A2_hat,1));
@@ -88,48 +80,157 @@ Constraints = [Constraints,
 
 Constraints = [Constraints,
     [P zeros(size(P,1),size(R,2)) P*C1_hat';zeros(size(R,1),size(P,2)) R (C2_hat+E_hat*Qstatic*C_hat+C1_hat*S)';
-    C1_hat*P C2_hat+E_hat*Qstatic*C_hat+C1_hat*S L] >= 0,DQv == 0];                                                       % (30), DQ=0 to guarantee that \mathcal{D}=0.
+    C1_hat*P C2_hat+E_hat*Qstatic*C_hat+C1_hat*S L] >= 0, DQYv==0];                                                       % (30), DQ=0 to guarantee that \mathcal{D}=0.
+
+limit=1000;
+Constraints = [Constraints,
+    min(CQXv)>=-limit,min(CQYv)>=-limit,min(CQYv)>=-limit,min(CQYv)>=-limit,
+    min(DQXv)>=-limit,min(DQYv)>=-limit, min(DQWv)>=-limit, min(DQZv)>=-limit,
+    max(CQXv)<=limit,max(CQYv)<=limit,max(CQYv)<=limit,max(CQYv)<=limit,
+    max(DQXv)<=limit,max(DQYv)<=limit, max(DQWv)<=limit, max(DQZv)<=limit];                                                       % (30), DQ=0 to guarantee that \mathcal{D}=0.
+
 fprintf('Done \n')
 
 % options = sdpsettings('allownonconvex',0,'solver','mosek','verbose',1);
-fprintf('Step 4: call SDP solver to obtain a solution ... \n')
+fprintf('Step 5: call SDP solver to obtain a solution ... \n')
 fprintf('==================================================\n')
 
 options = sdpsettings('allownonconvex',0,'solver','mosek','verbose',1);
 sol     = optimize(Constraints,gamma,options);
 
-%CQ   = round(value(CQv),6);  %rounding to avoid false non-zeros
-%DQ   = round(value(DQv),6);
-CQ  = value(CQv);
-DQ  = value(DQv);
+
+CQYr  = value(CQYv);
+DQYr  = value(DQYv);
+CQXr  = value(CQXv);
+DQXr  = value(DQXv);
+CQWr  = value(CQWv);
+DQWr  = value(DQWv);
+CQZr  = value(CQZv);
+DQZr  = value(DQZv);
 
 Vgamma = sqrt(value(gamma));  % value of the H2 norm!
 fprintf('\n H2 norm of the closed loop system is %6.4f \n', Vgamma);
 
 %% RECOVER Q(s) and K(s) to check sparsities
 Gi = (s*eye(size(AiQ,1))-AiQ)\BiQ;
-for i = 1:n
-    for j = 1:m
-        Y(i,j) = CQ(i,(j-1)*N+1:j*N)*Gi + DQ(i,j);
+for i = 1:m
+    for j = 1:n
+        Yr(i,j) = CQYr(i,(j-1)*N+1:j*N)*Gi + DQYr(i,j);
     end
 end
-%K = Y/(eye(n)+Gs*Y);
-K=Knom+Y*inv(eye(n)+Gnom*Y);
-GQ      = G*Y;
-GQsubs  = double(subs(GQ,s,rand));           %just get rid of s to get the sparsityKbin
-GQbin   = bin(GQsubs);
-Ksubs   = double(subs(K,s,rand));            %just get rid of s to get the sparsity
-Kbin    = bin(Ksubs);
+for i = 1:n
+    for j = 1:n
+        Xr(i,j) = CQXr(i,(j-1)*N+1:j*N)*Gi + DQXr(i,j);
+    end
+end
+for i = 1:n
+    for j = 1:m
+        Wr(i,j) = CQWr(i,(j-1)*N+1:j*N)*Gi + DQWr(i,j);
+    end
+end
+for i = 1:m
+    for j = 1:m
+        Zr(i,j) = CQZr(i,(j-1)*N+1:j*N)*Gi + DQZr(i,j);
+    end
+end
 
-%stability check
-%Closed_Loop=K*inv(eye(n)-Gs*K)*P21s;
-%for(i=1:m)
-%    for(j=1:n)
-%        if(isstable(syms2tf(Closed_Loop(i,j)))==0)
-%            disp('PROBLEM: Closed Loop is not stable')
-%        end
-%    end
-%end
+
+
+%Check stability parameters
+
+for i = 1:m
+    for j = 1:n
+        if(isstable(syms2tf(Yr(i,j)))==0)
+            disp('unstable Y')
+        end
+    end
+end
+
+equation=eye(n)+Gs*Yr;
+for i = 1:n
+    for j = 1:n
+        if(isstable(syms2tf(equation(i,j)))==0)
+            disp('unstable X')
+            i
+            j
+        end
+    end
+end
+
+for i = 1:n
+    for j = 1:m
+        if(isstable(syms2tf(Wr(i,j)))==0)
+            disp('unstable W')
+        end
+    end
+end
+
+for i = 1:m
+    for j = 1:m
+        if(isstable(syms2tf(Zr(i,j)))==0)
+            disp('unstable Z')
+        end
+    end
+end
+
+
+%Check Stability of the actual K
+K=Yr*inv(eye(n)+Yr);
+
+Closed_loop=inv(eye(n)-Gs*K);
+for(i=1:m)
+    for(j=1:n)
+        [num,den]=numden(Closed_loop(i,j));
+        coeffsn=coeffs(num);
+        coeffsd=coeffs(den);
+        coeffsn=coeffsn/coeffsd(1);
+        coeffsd=coeffsd/coeffsd(1);
+        coeffsn=double(coeffsn);
+        coeffsd=double(coeffsd);
+        num=poly2sym(coeffsn,s);
+        den=poly2sym(coeffsd,s);
+        num=vpa(num,5);
+        den=vpa(den,5);
+        Closed_loop(i,j)=num/den;
+        Closed_loop(i,j)=vpa(Closed_loop(i,j),5);
+    end
+end
+for i = 1:m
+    for j = 1:n
+        if(isstable(syms2tf(Closed_loop(i,j)))==0)
+            disp('unstable K*inv(eye(n)-Gs*K)')
+        end
+    end
+end
+
+Closed_loop=inv(eye(n)-Gs*K);
+for i = 1:n
+    for j = 1:n
+        if(isstable(syms2tf(Closed_loop(i,j)))==0)
+            disp('unstable inv(eye(n)-Gs*K)')
+        end
+    end
+end
+
+Closed_loop=inv(eye(n)-Gs*K)*Gs;
+for i = 1:n
+    for j = 1:m
+        if(isstable(syms2tf(Closed_loop(i,j)))==0)
+            disp('unstable inv(eye(n)-Gs*K)*Gs')
+        end
+    end
+end
+
+Closed_loop=inv(eye(n)-K*Gs);
+for i = 1:m
+    for j = 1:m
+        if(isstable(syms2tf(Closed_loop(i,j)))==0)
+            disp('unstable inv(eye(n)-K*Gs)')
+        end
+    end
+end
+
+
 %{
 Closed_Loop=Ktf*inv(eye(n)-G*Ktf);
 for(i=1:m)
@@ -154,4 +255,19 @@ end
 % norm(Gdz,2)
 
 
+%{
+Y=Knom*inv(eye(n)-Gs*Knom)*P21s;
+X=inv(eye(n)-Gs*Knom)*P21s;
+eq=X-P21s-Gs*Y;
+eqsubs=double(subs(eq,s,rand));
+
+for(i=1:m)
+    for(j=1:n)
+        fprintf('   Percentage %6.4f \n', 100*(n*(i-1)+j)/n/n )
+        if(isstable(syms2tf(X(i,j)))==0)
+            unstable=1
+        end
+    end
+end
+%}
 

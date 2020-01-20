@@ -21,7 +21,7 @@ for(i=2^NSbin:-1:1)
     end
     count_inside=0;
     QI=test_QI(T,Delta);
-    if(QI==1 && sum(sum(T))>=8)
+    if(QI==1 && sum(sum(T))>=5)
         count=count+1;
         T
         %if(count==1)

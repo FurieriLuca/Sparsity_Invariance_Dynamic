@@ -1,10 +1,6 @@
 
-s = sym('s');                                        % Redefines "s" as symbolic variable instead of a tf variable, which would be wrongly interpreted by matlab later
-Gs = [1/(s+1) 0 0 0 0;                               % Redefines the plant in terms of symbolic "s"
-    1/(s+1) 1/(s-1) 0 0 0;
-    1/(s+1) 1/(s-1) 1/(s+1) 0 0;
-    1/(s+1) 1/(s-1) 1/(s+1) 1/(s+1) 0;
-    1/(s+1) 1/(s-1) 1/(s+1) 1/(s+1) 1/(s-1)];
+   
+Gnom=G*inv(eye(n)-Knom*G);
 
 I = eye(n);
 % Defines CQ and DQ both as symbolic variables and sdpvar variables
@@ -36,7 +32,7 @@ if QI == 0        %This cycle is useless if QI (redundant constraints). Hence, w
         for j = 1:n
             fprintf('   Percentage %6.4f \n', (n*(i-1)+j)/n/n );                                                        
             if Rbin(i,j) == 0     % Whenever we need GY(i,j) = 0 ....
-                Uij = Gs(i,:)* (CQs(:,(j-1)*N+1:j*N) * Gi + DQs(:,j));     % Performs the symbolic matrix product GY(i,j)=\sum_l G(i,l)Y(l,j)
+                Uij = Gnom(i,:)* (CQs(:,(j-1)*N+1:j*N) * Gi + DQs(:,j));     % Performs the symbolic matrix product GY(i,j)=\sum_l G(i,l)Y(l,j)
                 [num,~] = numden(Uij);
                 cc      = coeffs(num,s);                                  % All elements of this vector must be 0....
                 A_eq    = equationsToMatrix(cc,[vec(CQs);vec(DQs)]);      % Express system of equations in matrix form in terms of the vectorized versions of CQs and DQs
