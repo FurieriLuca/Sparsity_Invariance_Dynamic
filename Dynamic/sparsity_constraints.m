@@ -10,8 +10,8 @@ I     = eye(n);
 % Defines CQ and DQ both as symbolic variables and sdpvar variables
 CQs   = sym('CQ',[m n*N]); %symbolic
 DQs   = sym('DQ',[m n]);
-CQv   = sdpvar(m,n*N);     %variable      
-DQv   = sdpvar(m,n);
+CQv   = sdpvar(m,n*N,'full');     %variable      
+DQv   = sdpvar(m,n,'full');
 
 %Write the finite-dimensional approximation of the Youla parameter as per
 %(16) of [0]
